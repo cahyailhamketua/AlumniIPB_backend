@@ -3,23 +3,22 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Laravel\Sanctum\HasApiTokens;
 
-class Alumni extends Model
+class Comment extends Model
 {
-    use HasApiTokens;
-
     protected $fillable = [
-        'nama',
-        'email',
-        'nomor_telepon',
-        'fakultas',
-        'angkatan',
         'user_id',
+        'article_id',
+        'content',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function article()
+    {
+        return $this->belongsTo(Article::class);
     }
 }

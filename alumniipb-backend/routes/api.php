@@ -21,9 +21,13 @@ Route::get('articles', [ArticleController::class, 'index']);
 Route::get('articles/{id}', [ArticleController::class, 'show']);
 
 // Authenticated routes for Articles
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'role:alumni'])->group(function () {
     Route::post('articles/{id}/like', [ArticleController::class, 'like']);
     Route::post('articles/{id}/comment', [ArticleController::class, 'comment']);
+});
+
+// Admin-only routes for Articles
+Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::post('articles', [ArticleController::class, 'store']);
     Route::put('articles/{id}', [ArticleController::class, 'update']);
     Route::delete('articles/{id}', [ArticleController::class, 'destroy']);

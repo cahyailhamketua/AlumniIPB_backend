@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Article;
+use App\Models\Comment; // Add this import
 use Illuminate\Support\Facades\Storage;
 
 class ArticleController extends Controller
@@ -27,8 +28,6 @@ class ArticleController extends Controller
             'judul' => 'required|string|max:255',
             'deskripsi' => 'required|string',
             'tanggal' => 'required|date',
-            'like' => 'integer|min:0',
-            'komentar' => 'integer|min:0',
             'kategori' => 'required|string|max:255',
             'isi_artikel' => 'required|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
@@ -73,8 +72,6 @@ class ArticleController extends Controller
             'judul' => 'required|string|max:255',
             'deskripsi' => 'required|string',
             'tanggal' => 'required|date',
-            'like' => 'integer|min:0',
-            'komentar' => 'integer|min:0',
             'kategori' => 'required|string|max:255',
             'isi_artikel' => 'required|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
@@ -123,16 +120,25 @@ class ArticleController extends Controller
             return response()->json(['message' => 'Article not found'], 404);
         }
 
-        $article->increment('like');
-        return response()->json(['message' => 'Article liked', 'likes' => $article->like]);
+        $user = auth()->user();
+
+        if ($user->likedArticles()->where('article_id', $article->id)->exists()) {
+            // Unlike the article
+            $user->likedArticles()->detach($article->id);
+            $message = 'Article unliked';
+        } else {
+            // Like the article
+            $user->likedArticles()->attach($article->id);
+            $message = 'Article liked';
+        }
+
+        $likesCount = $article->usersWhoLiked()->count();
+
+        return response()->json(['message' => $message, 'likes' => $likesCount]);
     }
 
     public function comment(Request $request, string $id)
     {
-        // For now, I'm just incrementing the comment count.
-        // In a real application, you would store the actual comment in a separate table
-        // and associate it with the article and the authenticated user.
-
         $article = Article::find($id);
 
         if (!$article) {
@@ -140,12 +146,15 @@ class ArticleController extends Controller
         }
 
         $validated = $request->validate([
-            'comment' => 'required|string|max:255',
+            'content' => 'required|string|max:255',
         ]);
 
-        $article->increment('komentar');
-        // Here you would typically save the comment to a 'comments' table.
-        // For demonstration, I'm just returning a success message.
-        return response()->json(['message' => 'Comment added', 'comments' => $article->komentar]);
+        $comment = Comment::create([
+            'user_id' => auth()->id(),
+            'article_id' => $article->id,
+            'content' => $validated['content'],
+        ]);
+
+        return response()->json(['message' => 'Comment added', 'comment' => $comment], 201);
     }
 }

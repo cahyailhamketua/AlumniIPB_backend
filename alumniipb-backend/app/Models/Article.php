@@ -10,10 +10,18 @@ class Article extends Model
         'judul',
         'deskripsi',
         'tanggal',
-        'like',
-        'komentar',
         'kategori',
         'isi_artikel',
         'image',
     ];
+
+    public function usersWhoLiked()
+    {
+        return $this->belongsToMany(User::class, 'article_likes');
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
 }
