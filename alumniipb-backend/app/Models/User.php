@@ -72,4 +72,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Comment::class);
     }
+
+    public function likedGalleries()
+    {
+        return $this->belongsToMany(Gallery::class, 'gallery_likes');
+    }
+
+    public function galleryComments()
+    {
+        return $this->hasMany(GalleryComment::class);
+    }
 }

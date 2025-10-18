@@ -11,14 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('galleries', function (Blueprint $table) {
+        Schema::create('gallery_likes', function (Blueprint $table) {
             $table->id();
-            $table->string('judul_galery');
-            $table->text('deskripsi');
-            $table->date('tanggal');
-            $table->string('kategori');
-            $table->integer('jumlah_peserta')->default(0);
-            $table->string('foto_kegiatan')->nullable();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('gallery_id')->constrained()->onDelete('cascade');
+            $table->unique(['user_id', 'gallery_id']);
             $table->timestamps();
         });
     }
@@ -28,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('galleries');
+        Schema::dropIfExists('gallery_likes');
     }
 };

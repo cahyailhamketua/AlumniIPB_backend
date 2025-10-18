@@ -13,8 +13,24 @@ Route::get('/test', function () {
 
 // Resource endpoint untuk masing-masing controller
 Route::apiResource('alumni', AlumniController::class);
-Route::apiResource('gallery', GalleryController::class);
 Route::apiResource('events', EventController::class);
+
+// Public routes for Galleries
+Route::get('gallery', [GalleryController::class, 'index']);
+Route::get('gallery/{id}', [GalleryController::class, 'show']);
+
+// Authenticated routes for Galleries (Alumni)
+Route::middleware(['auth:sanctum', 'role:alumni'])->group(function () {
+    Route::post('gallery/{id}/like', [GalleryController::class, 'like']);
+    Route::post('gallery/{id}/comment', [GalleryController::class, 'comment']);
+});
+
+// Admin-only routes for Galleries
+Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+    Route::post('gallery', [GalleryController::class, 'store']);
+    Route::put('gallery/{id}', [GalleryController::class, 'update']); // Reverted to original
+    Route::delete('gallery/{id}', [GalleryController::class, 'destroy']);
+});
 
 // Public routes for Articles
 Route::get('articles', [ArticleController::class, 'index']);
