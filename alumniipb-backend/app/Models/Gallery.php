@@ -13,6 +13,7 @@ class Gallery extends Model
         'kategori',
         'jumlah_peserta',
         'foto_kegiatan',
+        'lokasi',
     ];
 
     public function usersWhoLiked()

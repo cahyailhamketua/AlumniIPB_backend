@@ -15,7 +15,7 @@ class ArticleController extends Controller
      */
     public function index()
     {
-        $articles = Article::all();
+        $articles = Article::with(['usersWhoLiked', 'comments'])->get();
         return response()->json($articles);
     }
 
@@ -48,7 +48,7 @@ class ArticleController extends Controller
      */
     public function show(string $id)
     {
-        $article = Article::find($id);
+        $article = Article::with(['usersWhoLiked', 'comments'])->find($id);
 
         if (!$article) {
             return response()->json(['message' => 'Article not found'], 404);

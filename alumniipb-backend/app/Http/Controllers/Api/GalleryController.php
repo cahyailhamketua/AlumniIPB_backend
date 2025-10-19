@@ -15,10 +15,19 @@ class GalleryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $galleries = Gallery::with(['usersWhoLiked', 'comments'])->get();
-        return response()->json($galleries);
+        $galleries = Gallery::with(['usersWhoLiked', 'comments']);
+
+        if ($request->has('sortByCategory')) {
+            $galleries->orderBy('kategori');
+        }
+
+        if ($request->has('sortByYear')) {
+            $galleries->orderByRaw('YEAR(tanggal)');
+        }
+
+        return response()->json($galleries->get());
     }
 
     /**
@@ -33,6 +42,7 @@ class GalleryController extends Controller
             'kategori' => 'required|string|max:255',
             'jumlah_peserta' => 'integer|min:0',
             'foto_kegiatan' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'lokasi' => 'nullable|string|max:255',
         ]);
 
         if ($request->hasFile('foto_kegiatan')) {
@@ -79,6 +89,7 @@ class GalleryController extends Controller
             'kategori' => 'required|string|max:255',
             'jumlah_peserta' => 'integer|min:0',
             'foto_kegiatan' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'lokasi' => 'nullable|string|max:255',
         ]);
 
         if ($request->hasFile('foto_kegiatan')) {
@@ -160,5 +171,34 @@ class GalleryController extends Controller
         ]);
 
         return response()->json(['message' => 'Comment added', 'comment' => $comment], 201);
+    }
+
+    public function getGalleriesByCategory(string $kategori)
+    {
+        $galleries = Gallery::with(['usersWhoLiked', 'comments'])->where('kategori', $kategori)->get();
+        return response()->json($galleries);
+    }
+
+    public function getGalleriesByYear(string $year)
+    {
+        $galleries = Gallery::with(['usersWhoLiked', 'comments'])
+                            ->whereYear('tanggal', $year)
+                            ->get();
+        return response()->json($galleries);
+    }
+
+    public function getAllCategories()
+    {
+        $categories = Gallery::select('kategori')->distinct()->pluck('kategori');
+        return response()->json($categories);
+    }
+
+    public function getAllYears()
+    {
+        $years = Gallery::selectRaw('YEAR(tanggal) as year')
+                        ->distinct()
+                        ->orderBy('year', 'desc')
+                        ->pluck('year');
+        return response()->json($years);
     }
 }

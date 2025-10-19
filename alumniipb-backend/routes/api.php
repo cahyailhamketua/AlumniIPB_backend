@@ -16,6 +16,10 @@ Route::apiResource('alumni', AlumniController::class);
 Route::apiResource('events', EventController::class);
 
 // Public routes for Galleries
+Route::get('gallery/categories', [GalleryController::class, 'getAllCategories']);
+Route::get('gallery/years', [GalleryController::class, 'getAllYears']);
+Route::get('gallery/category/{kategori}', [GalleryController::class, 'getGalleriesByCategory']);
+Route::get('gallery/year/{year}', [GalleryController::class, 'getGalleriesByYear']);
 Route::get('gallery', [GalleryController::class, 'index']);
 Route::get('gallery/{id}', [GalleryController::class, 'show']);
 
