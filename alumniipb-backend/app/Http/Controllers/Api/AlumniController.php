@@ -158,4 +158,19 @@ class AlumniController extends Controller
             'role' => $user->role // Include user role in the response
         ]);
     }
+
+    /**
+     * Search for alumni by nama or fakultas.
+     */
+    public function search(Request $request)
+    {
+        $query = $request->input('query');
+
+        $alumni = Alumni::with('user') 
+            ->where('nama', 'like', '%' . $query . '%')
+            ->orWhere('fakultas', 'like', '%' . $query . '%')
+            ->get();
+
+        return response()->json($alumni, 200);
+    }
 }

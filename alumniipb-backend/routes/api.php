@@ -64,6 +64,7 @@ Route::post('/login', [AlumniController::class, 'login']);
 
 // menampilkan alumni
 Route::get('/alumni', [AlumniController::class, 'index']);
+Route::get('/alumni/search', [AlumniController::class, 'search']); 
 Route::get('/alumni/{id}', [AlumniController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
