@@ -12,7 +12,6 @@ Route::get('/test', function () {
 });
 
 // Resource endpoint untuk masing-masing controller
-Route::apiResource('alumni', AlumniController::class);
 Route::apiResource('events', EventController::class);
 
 // Public routes for Galleries
@@ -62,3 +61,7 @@ Route::middleware('auth:sanctum')->get('/profile', function (Request $request) {
 });
 Route::post('/register', [AlumniController::class, 'store']);
 Route::post('/login', [App\Http\Controllers\Api\AlumniController::class, 'login']);
+
+// menampilkan alumni
+Route::get('/alumni', [AlumniController::class, 'index']);
+Route::get('/alumni/{id}', [AlumniController::class, 'show']);
