@@ -17,7 +17,8 @@ class AlumniController extends Controller
      */
     public function index()
     {
-        $alumni = Alumni::all();
+        $alumni = Alumni::with('user')->get(); // Use get() if you don't want pagination metadata
+        // If you still want pagination, use: $alumni = Alumni::with('user')->paginate(10);
         return response()->json($alumni, 200);
     }
 
@@ -27,7 +28,7 @@ class AlumniController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'nama' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'nomor_telepon' => 'required|string|max:20',
             'fakultas' => 'required|string|max:255',
@@ -41,7 +42,6 @@ class AlumniController extends Controller
 
         // Create the User first
         $user = User::create([
-            'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => 'alumni',
@@ -50,8 +50,7 @@ class AlumniController extends Controller
         // Then create the associated Alumni record
         $alumni = Alumni::create([
             'user_id' => $user->id,
-            'nama' => $request->name,
-            'email' => $request->email,
+            'nama' => $request->nama,
             'nomor_telepon' => $request->nomor_telepon,
             'fakultas' => $request->fakultas,
             'angkatan' => $request->angkatan,
@@ -65,7 +64,7 @@ class AlumniController extends Controller
      */
     public function show(string $id)
     {
-        $alumni = Alumni::find($id);
+        $alumni = Alumni::with('user')->find($id);
 
         if (!$alumni) {
             return response()->json(['message' => 'Alumni not found'], 404);
@@ -77,11 +76,48 @@ class AlumniController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        //
-    }
+        $alumni = Alumni::with('user')->findOrFail($id);
 
+        // Cek apakah user yang login adalah pemilik akun ini
+        if (Auth::id() !== $alumni->user_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kamu tidak memiliki izin untuk mengedit data ini.'
+            ], 403);
+        }
+
+        // Validasi input
+        $validated = $request->validate([
+            'nama' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|unique:users,email,' . $alumni->user_id,
+            'nomor_telepon' => 'nullable|string|max:20',
+            'fakultas' => 'nullable|string|max:100',
+            'angkatan' => 'nullable|string|max:10',
+        ]);
+
+        // Update data di tabel users (email)
+        if (isset($validated['email'])) {
+            $alumni->user->update([
+                'email' => $validated['email'] ?? $alumni->user->email,
+            ]);
+        }
+
+        // Update data di tabel alumni (nama, nomor_telepon, fakultas, angkatan)
+        $alumni->update([
+            'nama' => $validated['nama'] ?? $alumni->nama,
+            'nomor_telepon' => $validated['nomor_telepon'] ?? $alumni->nomor_telepon,
+            'fakultas' => $validated['fakultas'] ?? $alumni->fakultas,
+            'angkatan' => $validated['angkatan'] ?? $alumni->angkatan,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Profil alumni berhasil diperbarui.',
+            'data' => $alumni->load('user:id,email'),
+        ]);
+    }
     /**
      * Remove the specified resource from storage.
      */
@@ -118,7 +154,7 @@ class AlumniController extends Controller
         return response()->json([
             'message' => 'Login berhasil',
             'token' => $token,
-            'user' => $user, // Return the User object with alumni data eager loaded
+            'user' => $user->load('alumni'), // Ensure alumni data is loaded
             'role' => $user->role // Include user role in the response
         ]);
     }

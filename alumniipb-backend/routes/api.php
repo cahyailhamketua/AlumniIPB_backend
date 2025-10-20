@@ -55,13 +55,17 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::delete('articles/{id}', [ArticleController::class, 'destroy']);
 });
 
-// Endpoint khusus register alumni (opsional, jika ingin terpisah dari resource)
+// Endpoint khusus register alumni 
 Route::middleware('auth:sanctum')->get('/profile', function (Request $request) {
     return $request->user();
 });
 Route::post('/register', [AlumniController::class, 'store']);
-Route::post('/login', [App\Http\Controllers\Api\AlumniController::class, 'login']);
+Route::post('/login', [AlumniController::class, 'login']);
 
 // menampilkan alumni
 Route::get('/alumni', [AlumniController::class, 'index']);
 Route::get('/alumni/{id}', [AlumniController::class, 'show']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::put('/alumni/{id}', [AlumniController::class, 'update']);
+});

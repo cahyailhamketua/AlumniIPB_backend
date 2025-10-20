@@ -19,7 +19,6 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
         'email',
         'password',
         'role',
@@ -61,6 +60,12 @@ class User extends Authenticatable
     public function alumni()
     {
         return $this->hasOne(Alumni::class);
+    }
+
+    // Add a virtual attribute for name from the related alumni model
+    public function getNameAttribute()
+    {
+        return $this->alumni->nama ?? null;
     }
 
     public function likedArticles()
