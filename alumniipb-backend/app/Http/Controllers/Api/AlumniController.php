@@ -17,7 +17,8 @@ class AlumniController extends Controller
      */
     public function index()
     {
-        //
+        $alumni = Alumni::with('user')->paginate(10);
+        return response()->json($alumni, 200);
     }
 
     /**
@@ -64,7 +65,13 @@ class AlumniController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $alumni = Alumni::with('user')->find($id);
+
+        if (!$alumni) {
+            return response()->json(['message' => 'Alumni not found'], 404);
+        }
+
+        return response()->json($alumni, 200);
     }
 
     /**

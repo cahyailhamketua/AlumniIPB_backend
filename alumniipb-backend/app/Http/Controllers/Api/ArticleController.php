@@ -157,4 +157,29 @@ class ArticleController extends Controller
 
         return response()->json(['message' => 'Comment added', 'comment' => $comment], 201);
     }
+
+    public function getArticlesByCategory(string $kategori)
+    {
+        $articles = Article::with(['usersWhoLiked', 'comments'])->where('kategori', $kategori)->get();
+        return response()->json($articles);
+    }
+
+    public function getAllCategories()
+    {
+        $categories = Article::select('kategori')->distinct()->pluck('kategori');
+        return response()->json($categories);
+    }
+
+    public function searchArticles(Request $request)
+    {
+        $query = Article::with(['usersWhoLiked', 'comments']);
+
+        if ($request->has('keyword')) {
+            $keyword = $request->input('keyword');
+            $query->where('judul', 'like', '%' . $keyword . '%');
+                  //->orWhere('isi_artikel', 'like', '%' . $keyword . '%');
+        }
+
+        return response()->json($query->get());
+    }
 }
