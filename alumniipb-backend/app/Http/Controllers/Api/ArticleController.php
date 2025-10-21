@@ -15,7 +15,10 @@ class ArticleController extends Controller
      */
     public function index()
     {
-        $articles = Article::with(['usersWhoLiked', 'comments'])->get();
+        $articles = Article::select('id', 'judul', 'deskripsi', 'tanggal', 'kategori', 'image')
+            ->withCount(['usersWhoLiked as likes_count', 'comments as comments_count'])
+            ->get();
+
         return response()->json($articles);
     }
 
@@ -48,7 +51,19 @@ class ArticleController extends Controller
      */
     public function show(string $id)
     {
-        $article = Article::with(['usersWhoLiked', 'comments'])->find($id);
+        $article = Article::select('id', 'judul', 'deskripsi', 'tanggal', 'kategori', 'isi_artikel', 'image')
+            ->withCount(['usersWhoLiked as likes_count', 'comments as comments_count'])
+            ->with(['comments' => function ($query) {
+                $query->whereNull('parent_id') // Only fetch top-level comments
+                    ->select('id', 'user_id', 'article_id', 'content', 'created_at', 'parent_id')
+                    ->withCount(['likes as comment_likes_count'])
+                    ->with(['user.alumni', 'replies' => function ($query) {
+                        $query->select('id', 'user_id', 'article_id', 'content', 'created_at', 'parent_id')
+                            ->withCount(['likes as comment_likes_count'])
+                            ->with(['user.alumni']);
+                    }]);
+            }])
+            ->find($id);
 
         if (!$article) {
             return response()->json(['message' => 'Article not found'], 404);
@@ -160,7 +175,9 @@ class ArticleController extends Controller
 
     public function getArticlesByCategory(string $kategori)
     {
-        $articles = Article::with(['usersWhoLiked', 'comments'])->where('kategori', $kategori)->get();
+        $articles = Article::select('id', 'judul', 'deskripsi', 'tanggal', 'kategori', 'image')
+            ->withCount(['usersWhoLiked as likes_count', 'comments as comments_count'])
+            ->where('kategori', $kategori)->get();
         return response()->json($articles);
     }
 
@@ -172,7 +189,8 @@ class ArticleController extends Controller
 
     public function searchArticles(Request $request)
     {
-        $query = Article::with(['usersWhoLiked', 'comments']);
+        $query = Article::select('id', 'judul', 'deskripsi', 'tanggal', 'kategori', 'image')
+            ->withCount(['usersWhoLiked as likes_count', 'comments as comments_count']);
 
         if ($request->has('keyword')) {
             $keyword = $request->input('keyword');
@@ -181,5 +199,61 @@ class ArticleController extends Controller
         }
 
         return response()->json($query->get());
+    }
+
+    /**
+     * Like or unlike a comment.
+     */
+    public function likeComment(string $commentId)
+    {
+        $comment = Comment::find($commentId);
+
+        if (!$comment) {
+            return response()->json(['message' => 'Comment not found'], 404);
+        }
+
+        $user = auth()->user();
+
+        if ($user->likedComments()->where('comment_id', $comment->id)->exists()) {
+            $user->likedComments()->detach($comment->id);
+            $message = 'Comment unliked';
+        } else {
+            $user->likedComments()->attach($comment->id);
+            $message = 'Comment liked';
+        }
+
+        $likesCount = $comment->likes()->count();
+
+        return response()->json(['message' => $message, 'likes' => $likesCount]);
+    }
+
+    /**
+     * Reply to a comment.
+     */
+    public function replyToComment(Request $request, string $articleId, string $parentId)
+    {
+        $article = Article::find($articleId);
+        $parentComment = Comment::find($parentId);
+
+        if (!$article) {
+            return response()->json(['message' => 'Article not found'], 404);
+        }
+
+        if (!$parentComment) {
+            return response()->json(['message' => 'Parent comment not found'], 404);
+        }
+
+        $validated = $request->validate([
+            'content' => 'required|string|max:255',
+        ]);
+
+        $reply = Comment::create([
+            'user_id' => auth()->id(),
+            'article_id' => $article->id,
+            'parent_id' => $parentComment->id,
+            'content' => $validated['content'],
+        ]);
+
+        return response()->json(['message' => 'Reply added', 'reply' => $reply], 201);
     }
 }

@@ -10,6 +10,7 @@ class Comment extends Model
         'user_id',
         'article_id',
         'content',
+        'parent_id',
     ];
 
     public function user()
@@ -20,5 +21,20 @@ class Comment extends Model
     public function article()
     {
         return $this->belongsTo(Article::class);
+    }
+
+    public function likes()
+    {
+        return $this->belongsToMany(User::class, 'comment_likes');
+    }
+
+    public function replies()
+    {
+        return $this->hasMany(Comment::class, 'parent_id')->latest();
+    }
+
+    public function parent()
+    {
+        return $this->belongsTo(Comment::class, 'parent_id');
     }
 }

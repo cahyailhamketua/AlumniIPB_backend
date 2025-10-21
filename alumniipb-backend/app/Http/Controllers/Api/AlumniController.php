@@ -123,7 +123,23 @@ class AlumniController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $alumni = Alumni::find($id);
+
+        if (!$alumni) {
+            return response()->json(['message' => 'Alumni not found'], 404);
+        }
+
+        $user = $alumni->user;
+
+        if ($alumni->delete()) {
+            // Also delete the associated User record if it exists
+            if ($user) {
+                $user->delete();
+            }
+            return response()->json(['message' => 'Alumni and associated user deleted successfully'], 200);
+        }
+
+        return response()->json(['message' => 'Failed to delete alumni'], 500);
     }
 
     /**

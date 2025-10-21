@@ -46,6 +46,8 @@ Route::get('articles/{id}', [ArticleController::class, 'show']);
 Route::middleware(['auth:sanctum', 'role:alumni'])->group(function () {
     Route::post('articles/{id}/like', [ArticleController::class, 'like']);
     Route::post('articles/{id}/comment', [ArticleController::class, 'comment']);
+    Route::post('comments/{commentId}/like', [ArticleController::class, 'likeComment']);
+    Route::post('articles/{articleId}/comments/{parentId}/reply', [ArticleController::class, 'replyToComment']);
 });
 
 // Admin-only routes for Articles
@@ -69,4 +71,8 @@ Route::get('/alumni/{id}', [AlumniController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::put('/alumni/{id}', [AlumniController::class, 'update']);
+});
+
+Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+    Route::delete('/alumni/{id}', [AlumniController::class, 'destroy']);
 });
