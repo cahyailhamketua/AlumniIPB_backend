@@ -17,6 +17,7 @@ class ArticleController extends Controller
     {
         $articles = Article::select('id', 'judul', 'deskripsi', 'tanggal', 'kategori', 'image')
             ->withCount(['usersWhoLiked as likes_count', 'comments as comments_count'])
+            ->orderBy('tanggal', 'desc')
             ->get();
 
         return response()->json($articles);
@@ -177,7 +178,9 @@ class ArticleController extends Controller
     {
         $articles = Article::select('id', 'judul', 'deskripsi', 'tanggal', 'kategori', 'image')
             ->withCount(['usersWhoLiked as likes_count', 'comments as comments_count'])
-            ->where('kategori', $kategori)->get();
+            ->where('kategori', $kategori)
+            ->orderBy('tanggal', 'desc')
+            ->get();
         return response()->json($articles);
     }
 
@@ -197,6 +200,8 @@ class ArticleController extends Controller
             $query->where('judul', 'like', '%' . $keyword . '%');
                   //->orWhere('isi_artikel', 'like', '%' . $keyword . '%');
         }
+
+        $query->orderBy('tanggal', 'desc');
 
         return response()->json($query->get());
     }
