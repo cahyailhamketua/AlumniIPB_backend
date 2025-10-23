@@ -17,7 +17,18 @@ class GalleryController extends Controller
      */
     public function index(Request $request)
     {
-        $galleries = Gallery::with(['usersWhoLiked', 'comments']);
+        $galleries = Gallery::select(
+            'id',
+            'judul_galery',
+            'deskripsi',
+            'tanggal',
+            'kategori',
+            'jumlah_peserta',
+            'foto_kegiatan',
+            'lokasi'
+        )
+        ->withCount(['usersWhoLiked as likes_count'])
+            ->orderBy('tanggal', 'desc');
 
         if ($request->has('sortByCategory')) {
             $galleries->orderBy('kategori');
@@ -175,14 +186,38 @@ class GalleryController extends Controller
 
     public function getGalleriesByCategory(string $kategori)
     {
-        $galleries = Gallery::with(['usersWhoLiked', 'comments'])->where('kategori', $kategori)->get();
+        $galleries = Gallery::select(
+            'id',
+            'judul_galery',
+            'deskripsi',
+            'tanggal',
+            'kategori',
+            'jumlah_peserta',
+            'foto_kegiatan',
+            'lokasi'
+        )
+        ->withCount(['usersWhoLiked as likes_count'])
+            ->where('kategori', $kategori)
+            ->orderBy('tanggal', 'desc')
+            ->get();
         return response()->json($galleries);
     }
 
     public function getGalleriesByYear(string $year)
     {
-        $galleries = Gallery::with(['usersWhoLiked', 'comments'])
+        $galleries = Gallery::select(
+            'id',
+            'judul_galery',
+            'deskripsi',
+            'tanggal',
+            'kategori',
+            'jumlah_peserta',
+            'foto_kegiatan',
+            'lokasi'
+        )
+        ->withCount(['usersWhoLiked as likes_count'])
                             ->whereYear('tanggal', $year)
+                            ->orderBy('tanggal', 'desc')
                             ->get();
         return response()->json($galleries);
     }
