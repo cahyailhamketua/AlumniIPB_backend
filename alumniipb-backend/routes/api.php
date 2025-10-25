@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AlumniController;
 use App\Http\Controllers\Api\ArticleController;
 use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\EventController;
+use App\Http\Controllers\Api\AboutUsController;
 
 // Endpoint untuk tes API
 Route::get('/test', function () {
@@ -55,6 +56,17 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::post('articles', [ArticleController::class, 'store']);
     Route::put('articles/{id}', [ArticleController::class, 'update']);
     Route::delete('articles/{id}', [ArticleController::class, 'destroy']);
+
+    Route::get('about-us', [AboutUsController::class, 'index']);
+    Route::post('about-us', [AboutUsController::class, 'store']);
+    Route::get('about-us/show', [AboutUsController::class, 'show']);
+    Route::post('about-us/update', [AboutUsController::class, 'update']);
+    Route::delete('about-us', [AboutUsController::class, 'destroy']);
+
+    Route::get('about-us/organizational-structures', [AboutUsController::class, 'getOrganizationalStructures']);
+    Route::post('about-us/organizational-structures', [AboutUsController::class, 'addOrganizationalStructure']);
+    Route::put('about-us/organizational-structures/{id}', [AboutUsController::class, 'updateOrganizationalStructure']);
+    Route::delete('about-us/organizational-structures/{id}', [AboutUsController::class, 'deleteOrganizationalStructure']);
 });
 
 // Endpoint khusus register alumni 
