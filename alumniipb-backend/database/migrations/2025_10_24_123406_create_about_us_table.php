@@ -14,14 +14,12 @@ return new class extends Migration
         Schema::create('about_us', function (Blueprint $table) {
             $table->id();
             $table->text('history')->nullable();
-            $table->text('timeline')->nullable();
             $table->text('mission_focus')->nullable();
             $table->string('contact')->nullable();
             $table->string('address')->nullable();
             $table->string('gmail')->nullable();
             $table->string('instagram')->nullable();
-            $table->json('organizational_structure')->nullable();
-            $table->string('image')->nullable();
+            $table->string('youtube')->nullable();
             $table->timestamps();
         });
     }

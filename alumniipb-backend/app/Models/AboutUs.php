@@ -11,7 +11,6 @@ class AboutUs extends Model
 
     protected $fillable = [
         'history',
-        'timeline',
         'mission_focus',
         'contact',
         'address',

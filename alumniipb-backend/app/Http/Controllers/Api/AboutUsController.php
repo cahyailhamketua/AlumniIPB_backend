@@ -26,7 +26,6 @@ class AboutUsController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'history' => 'nullable|string',
-            'timeline' => 'nullable|string',
             'mission_focus' => 'nullable|string',
             'contact' => 'nullable|string',
             'address' => 'nullable|string',
@@ -41,7 +40,6 @@ class AboutUsController extends Controller
 
         $aboutUs = AboutUs::firstOrNew();
         $aboutUs->history = $request->history;
-        $aboutUs->timeline = $request->timeline;
         $aboutUs->mission_focus = $request->mission_focus;
         $aboutUs->contact = $request->contact;
         $aboutUs->address = $request->address;
@@ -78,7 +76,6 @@ class AboutUsController extends Controller
 
         $validator = Validator::make($request->all(), [
             'history' => 'nullable|string',
-            'timeline' => 'nullable|string',
             'mission_focus' => 'nullable|string',
             'contact' => 'nullable|string',
             'address' => 'nullable|string',
@@ -92,7 +89,6 @@ class AboutUsController extends Controller
         }
 
         $aboutUs->history = $request->history;
-        $aboutUs->timeline = $request->timeline;
         $aboutUs->mission_focus = $request->mission_focus;
         $aboutUs->contact = $request->contact;
         $aboutUs->address = $request->address;
