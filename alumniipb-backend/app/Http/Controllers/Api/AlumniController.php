@@ -175,6 +175,16 @@ class AlumniController extends Controller
         ]);
     }
 
+     /**
+     * Logout an alumni.
+     */
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json(['message' => 'Logout berhasil'], 200);
+    }
+
     /**
      * Search for alumni by nama or fakultas.
      */

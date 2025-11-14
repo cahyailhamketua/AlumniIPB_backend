@@ -54,6 +54,10 @@ Route::middleware('auth:sanctum')->get('/profile', function (Request $request) {
 Route::post('/register', [AlumniController::class, 'store']);
 Route::post('/login', [AlumniController::class, 'login']);
 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AlumniController::class, 'logout']);
+});
+
 // menampilkan alumni
 Route::get('/alumni', [AlumniController::class, 'index']);
 Route::get('/alumni/search', [AlumniController::class, 'search']); 
