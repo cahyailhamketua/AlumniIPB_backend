@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class AlumniController extends Controller
 {
@@ -34,10 +35,21 @@ class AlumniController extends Controller
             'fakultas' => 'required|string|max:255',
             'angkatan' => 'required|string|max:10',
             'password' => 'required|string|min:6|confirmed',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'pekerjaan' => 'nullable|string|max:255',
+            'perusahaan' => 'nullable|string|max:255',
+            'alamat' => 'nullable|string',
+            'biografi' => 'nullable|string',
+            'riwayat_pekerjaan' => 'nullable|array',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('alumni_images', 'public');
         }
 
         // Create the User first
@@ -54,6 +66,12 @@ class AlumniController extends Controller
             'nomor_telepon' => $request->nomor_telepon,
             'fakultas' => $request->fakultas,
             'angkatan' => $request->angkatan,
+            'image' => $imagePath,
+            'pekerjaan' => $request->pekerjaan ?? null,
+            'perusahaan' => $request->perusahaan ?? null,
+            'alamat' => $request->alamat ?? null,
+            'biografi' => $request->biografi ?? null,
+            'riwayat_pekerjaan' => $request->riwayat_pekerjaan ?? null,
         ]);
 
         return response()->json(['message' => 'Pendaftaran berhasil', 'user' => $user, 'alumni_profile' => $alumni], 201);
@@ -95,7 +113,22 @@ class AlumniController extends Controller
             'nomor_telepon' => 'nullable|string|max:20',
             'fakultas' => 'nullable|string|max:100',
             'angkatan' => 'nullable|string|max:10',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'pekerjaan' => 'nullable|string|max:255',
+            'perusahaan' => 'nullable|string|max:255',
+            'alamat' => 'nullable|string',
+            'biografi' => 'nullable|string',
+            'riwayat_pekerjaan' => 'nullable|array',
         ]);
+
+        $imagePath = $alumni->image;
+        if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($alumni->image) {
+                Storage::disk('public')->delete($alumni->image);
+            }
+            $imagePath = $request->file('image')->store('alumni_images', 'public');
+        }
 
         // Update data di tabel users (email)
         if (isset($validated['email'])) {
@@ -110,6 +143,12 @@ class AlumniController extends Controller
             'nomor_telepon' => $validated['nomor_telepon'] ?? $alumni->nomor_telepon,
             'fakultas' => $validated['fakultas'] ?? $alumni->fakultas,
             'angkatan' => $validated['angkatan'] ?? $alumni->angkatan,
+            'image' => $imagePath,
+            'pekerjaan' => $validated['pekerjaan'] ?? $alumni->pekerjaan,
+            'perusahaan' => $validated['perusahaan'] ?? $alumni->perusahaan,
+            'alamat' => $validated['alamat'] ?? $alumni->alamat,
+            'biografi' => $validated['biografi'] ?? $alumni->biografi,
+            'riwayat_pekerjaan' => $validated['riwayat_pekerjaan'] ?? $alumni->riwayat_pekerjaan,
         ]);
 
         return response()->json([
@@ -132,6 +171,10 @@ class AlumniController extends Controller
         $user = $alumni->user;
 
         if ($alumni->delete()) {
+            // Delete associated image if exists
+            if ($alumni->image) {
+                Storage::disk('public')->delete($alumni->image);
+            }
             // Also delete the associated User record if it exists
             if ($user) {
                 $user->delete();

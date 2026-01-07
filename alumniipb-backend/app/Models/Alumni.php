@@ -16,8 +16,17 @@ class Alumni extends Model
         'fakultas',
         'angkatan',
         'user_id',
+        'image',
+        'pekerjaan',
+        'perusahaan',
+        'alamat',
+        'biografi',
+        'riwayat_pekerjaan',
     ];
 
+    protected $casts = [
+        'riwayat_pekerjaan' => 'array',
+    ];
     public function user()
     {
         return $this->belongsTo(User::class);
