@@ -56,6 +56,9 @@ Route::post('/login', [AlumniController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AlumniController::class, 'logout']);
+    Route::post('/change-password', [AlumniController::class, 'changePassword']);
+    // Alias path so client hitting /api/alumni/change-password doesn't get 405
+    Route::post('/alumni/change-password', [AlumniController::class, 'changePassword']);
 });
 
 // menampilkan alumni

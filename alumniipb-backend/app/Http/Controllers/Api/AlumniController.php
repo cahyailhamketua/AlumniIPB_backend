@@ -229,6 +229,37 @@ class AlumniController extends Controller
     }
 
     /**
+     * Change password for authenticated user.
+     */
+    public function changePassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:6|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $user = $request->user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['message' => 'Current password is incorrect'], 400);
+        }
+
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        // Revoke current access token so client must re-login for security
+        if ($request->user()->currentAccessToken()) {
+            $request->user()->currentAccessToken()->delete();
+        }
+
+        return response()->json(['message' => 'Password berhasil diubah'], 200);
+    }
+
+    /**
      * Search for alumni by nama or fakultas.
      */
     public function search(Request $request)
