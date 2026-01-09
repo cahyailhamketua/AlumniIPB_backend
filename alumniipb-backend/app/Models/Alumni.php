@@ -22,6 +22,7 @@ class Alumni extends Model
         'alamat',
         'biografi',
         'riwayat_pekerjaan',
+        'linkedin',
     ];
 
     protected $casts = [
