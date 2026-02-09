@@ -23,7 +23,8 @@ class JobOpeningController extends Controller
         
         if ($this->isAdmin($user)) {
             $active = $request->query('active'); // '1' or '0' atau null
-            $expired = $request->query('expired'); // '1' atau '0' atau null
+            $expired = $request->query('expired'); // '1' or '0' atau null
+            $type = $request->query('type');
 
             if (!is_null($active)) {
                 $query->where('active', $active ? true : false);
@@ -39,17 +40,28 @@ class JobOpeningController extends Controller
                 }
             }
 
-            $items = $query->orderBy('created_at', 'desc')->get();
+            if (!is_null($type) && in_array($type, ['job','internship'])) {
+                $query->where('type', $type);
+            }
+
+            $perPage = (int) $request->query('per_page', 15);
+            $items = $query->orderBy('created_at', 'desc')->paginate($perPage)->appends($request->query());
             return response()->json($items);
         }
 
         // Guest dan alumni hanya melihat lowongan active yang belum lewat deadline
-        $items = $query->where('active', true)
+        $type = $request->query('type');
+        $query->where('active', true)
             ->where(function ($q) {
                 $q->whereNull('deadline')->orWhere('deadline', '>', now());
-            })
-            ->orderBy('created_at', 'desc')
-            ->get();
+            });
+
+        if (!is_null($type) && in_array($type, ['job','internship'])) {
+            $query->where('type', $type);
+        }
+
+        $perPage = (int) $request->query('per_page', 15);
+        $items = $query->orderBy('created_at', 'desc')->paginate($perPage)->appends($request->query());
 
         return response()->json($items);
     }
