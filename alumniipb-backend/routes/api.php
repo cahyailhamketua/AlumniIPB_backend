@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\AboutUsController;
 use App\Http\Controllers\Api\TimelineController;
+use App\Http\Controllers\Api\JobOpeningController;
 
 // Public routes for Galleries
 Route::get('gallery/categories', [GalleryController::class, 'getAllCategories']);
@@ -98,4 +99,21 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::post('/timelines', [TimelineController::class, 'store']);
     Route::put('/timelines/{id}', [TimelineController::class, 'update']);
     Route::delete('/timelines/{id}', [TimelineController::class, 'destroy']);
+});
+
+// Job Openings routes
+Route::get('job-openings', [JobOpeningController::class, 'index']);
+Route::get('job-openings/{id}', [JobOpeningController::class, 'show']);
+
+// Authenticated users (alumni and admin) can create; controller handles approval logic
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('job-openings', [JobOpeningController::class, 'store']);
+    Route::put('job-openings/{id}', [JobOpeningController::class, 'update']);
+});
+
+// Admin-only actions
+Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+    Route::post('job-openings/{id}/approve', [JobOpeningController::class, 'approve']);
+    Route::post('job-openings/{id}/deactivate', [JobOpeningController::class, 'deactivate']);
+    Route::delete('job-openings/{id}', [JobOpeningController::class, 'destroy']);
 });
