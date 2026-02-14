@@ -46,4 +46,26 @@ class JobOpening extends Model
     {
         return $this->belongsTo(User::class, 'approved_by_id');
     }
+
+    // Scopes for reuse in controllers
+    public function scopeSearch($q, $term)
+    {
+        if (! $term) return $q;
+        return $q->where(function ($qb) use ($term) {
+            $qb->where('position', 'like', "%{$term}%")
+               ->orWhere('description', 'like', "%{$term}%")
+               ->orWhere('company', 'like', "%{$term}%")
+               ->orWhere('location', 'like', "%{$term}%");
+        });
+    }
+
+    public function scopeFilterIndustry($q, $industry)
+    {
+        return $industry ? $q->where('industry', $industry) : $q;
+    }
+
+    public function scopeFilterPosition($q, $position)
+    {
+        return $position ? $q->where('position', 'like', "%{$position}%") : $q;
+    }
 }

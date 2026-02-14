@@ -16,15 +16,20 @@ class JobOpeningController extends Controller
     {
         $query = JobOpening::query();
 
+        // common query params
+        $search = $request->query('query');
+        $industry = $request->query('industry');
+        $position = $request->query('position');
+        $sort = $request->query('sort', 'latest'); // latest | deadline
+        $type = $request->query('type');
+
         // Ambil user terautentikasi jika ada (coba beberapa guard supaya Bearer token dikenali pada route publik)
         $user = $this->getAuthenticatedUser($request);
-        // Jika user ter-autentikasi dan role admin, dapat melihat semua lowongan (termasuk inactive/expired)
-        // Admin juga boleh mem-filter dengan query params: ?active=1|0 & ?expired=1|0
-        
+
+        // Admin can see everything and apply admin-specific filters
         if ($this->isAdmin($user)) {
             $active = $request->query('active'); // '1' or '0' atau null
             $expired = $request->query('expired'); // '1' or '0' atau null
-            $type = $request->query('type');
 
             if (!is_null($active)) {
                 $query->where('active', $active ? true : false);
@@ -39,29 +44,49 @@ class JobOpeningController extends Controller
                     });
                 }
             }
-
-            if (!is_null($type) && in_array($type, ['job','internship'])) {
-                $query->where('type', $type);
-            }
-
-            $perPage = (int) $request->query('per_page', 15);
-            $items = $query->orderBy('created_at', 'desc')->paginate($perPage)->appends($request->query());
-            return response()->json($items);
+        } else {
+            // Guest dan alumni hanya melihat lowongan active yang belum lewat deadline
+            $query->where('active', true)
+                ->where(function ($q) {
+                    $q->whereNull('deadline')->orWhere('deadline', '>', now());
+                });
         }
 
-        // Guest dan alumni hanya melihat lowongan active yang belum lewat deadline
-        $type = $request->query('type');
-        $query->where('active', true)
-            ->where(function ($q) {
-                $q->whereNull('deadline')->orWhere('deadline', '>', now());
-            });
-
+        // optional type filter (job | internship)
         if (!is_null($type) && in_array($type, ['job','internship'])) {
             $query->where('type', $type);
         }
 
+        // search across some text fields
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('position', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('company', 'like', "%{$search}%")
+                  ->orWhere('location', 'like', "%{$search}%");
+            });
+        }
+
+        // filter by industry (stored as string in model)
+        if ($industry) {
+            $query->where('industry', $industry);
+        }
+
+        // filter by position string (exact or partial)
+        if ($position) {
+            $query->where('position', 'like', "%{$position}%");
+        }
+
+        // sorting
+        if ($sort === 'deadline') {
+            // ensure items without deadline appear last
+            $query->orderByRaw("IFNULL(deadline, '9999-12-31') ASC");
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
         $perPage = (int) $request->query('per_page', 15);
-        $items = $query->orderBy('created_at', 'desc')->paginate($perPage)->appends($request->query());
+        $items = $query->paginate($perPage)->appends($request->query());
 
         return response()->json($items);
     }
@@ -79,6 +104,36 @@ class JobOpeningController extends Controller
         }
 
         return response()->json($item);
+    }
+
+    /**
+     * Return distinct industries for dropdowns (sorted, non-empty)
+     */
+    public function industries()
+    {
+        $items = JobOpening::query()
+            ->whereNotNull('industry')
+            ->where('industry', '<>', '')
+            ->distinct()
+            ->orderBy('industry')
+            ->pluck('industry');
+
+        return response()->json($items);
+    }
+
+    /**
+     * Return distinct positions for dropdowns (sorted, non-empty)
+     */
+    public function positions()
+    {
+        $items = JobOpening::query()
+            ->whereNotNull('position')
+            ->where('position', '<>', '')
+            ->distinct()
+            ->orderBy('position')
+            ->pluck('position');
+
+        return response()->json($items);
     }
 
     // Membuat lowongan. Hanya untuk user terautentikasi (alumni/admin)

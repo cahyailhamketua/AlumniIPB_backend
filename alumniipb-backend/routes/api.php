@@ -103,6 +103,9 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
 
 // Job Openings routes
 Route::get('job-openings', [JobOpeningController::class, 'index']);
+// Dropdown helpers: distinct industries and positions
+Route::get('job-openings/industries', [JobOpeningController::class, 'industries']);
+Route::get('job-openings/positions', [JobOpeningController::class, 'positions']);
 Route::get('job-openings/{id}', [JobOpeningController::class, 'show']);
 
 // Authenticated users (alumni and admin) can create; controller handles approval logic
