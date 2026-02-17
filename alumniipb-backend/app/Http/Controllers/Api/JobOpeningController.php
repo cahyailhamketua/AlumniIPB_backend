@@ -220,6 +220,13 @@ class JobOpeningController extends Controller
             unset($data['active']);
         }
 
+        // Alumni yang edit: lowongan harus menunggu persetujuan admin lagi (sama seperti create)
+        if (! $this->isAdmin($user)) {
+            $data['active'] = false;
+            $data['approved_by_id'] = null;
+            $data['approved_at'] = null;
+        }
+
         // Jika ada file image baru, simpan dan hapus file lama bila ada
         if ($request->hasFile('image')) {
             // Hapus file lama jika disimpan di storage/public
