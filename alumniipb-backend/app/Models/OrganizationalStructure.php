@@ -10,15 +10,9 @@ class OrganizationalStructure extends Model
     use HasFactory;
 
     protected $fillable = [
-        'about_us_id',
         'name',
         'position',
         'tenure',
         'image',
     ];
-
-    public function aboutUs()
-    {
-        return $this->belongsTo(AboutUs::class);
-    }
 }

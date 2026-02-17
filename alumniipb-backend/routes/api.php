@@ -5,9 +5,8 @@ use App\Http\Controllers\Api\AlumniController;
 use App\Http\Controllers\Api\ArticleController;
 use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\EventController;
-use App\Http\Controllers\Api\AboutUsController;
-use App\Http\Controllers\Api\TimelineController;
 use App\Http\Controllers\Api\JobOpeningController;
+use App\Http\Controllers\Api\OrganizationalStructureController;
 
 // Public routes for Galleries
 Route::get('gallery/categories', [GalleryController::class, 'getAllCategories']);
@@ -75,30 +74,14 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::delete('/alumni/{id}', [AlumniController::class, 'destroy']);
 });
 
-// About Us routes
-Route::get('about-us', [AboutUsController::class, 'index']);
-Route::get('about-us/show', [AboutUsController::class, 'show']);
-Route::get('about-us/organizational-structures', [AboutUsController::class, 'getOrganizationalStructures']);
+// Organizational Structures routes
+Route::get('organizational-structures', [OrganizationalStructureController::class, 'index']);
+Route::get('organizational-structures/{id}', [OrganizationalStructureController::class, 'show']);
 
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
-    Route::post('about-us', [AboutUsController::class, 'store']);
-    Route::put('about-us/update', [AboutUsController::class, 'update']);
-    Route::delete('about-us', [AboutUsController::class, 'destroy']);
-
-    Route::post('about-us/organizational-structures', [AboutUsController::class, 'addOrganizationalStructure']);
-    Route::put('about-us/organizational-structures/{id}', [AboutUsController::class, 'updateOrganizationalStructure']);
-    Route::delete('about-us/organizational-structures/{id}', [AboutUsController::class, 'deleteOrganizationalStructure']);
-});
-
-// Public routes for Timelines
-Route::get('/timelines', [TimelineController::class, 'index']);
-Route::get('/timelines/{id}', [TimelineController::class, 'show']);
-
-// Admin routes for Timelines
-Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
-    Route::post('/timelines', [TimelineController::class, 'store']);
-    Route::put('/timelines/{id}', [TimelineController::class, 'update']);
-    Route::delete('/timelines/{id}', [TimelineController::class, 'destroy']);
+    Route::post('organizational-structures', [OrganizationalStructureController::class, 'store']);
+    Route::put('organizational-structures/{id}', [OrganizationalStructureController::class, 'update']);
+    Route::delete('organizational-structures/{id}', [OrganizationalStructureController::class, 'destroy']);
 });
 
 // Job Openings routes

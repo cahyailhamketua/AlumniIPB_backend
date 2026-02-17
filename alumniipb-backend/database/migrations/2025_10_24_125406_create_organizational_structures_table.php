@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('organizational_structures', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('about_us_id')->constrained('about_us')->onDelete('cascade');
             $table->string('name');
             $table->string('position');
             $table->string('tenure')->nullable();
