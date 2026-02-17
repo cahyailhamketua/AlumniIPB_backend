@@ -16,6 +16,8 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             AlumniSeeder::class,
             ArticleSeeder::class,
+            GallerySeeder::class,
+            JobOpeningSeeder::class,
         ]);
     }
 }
