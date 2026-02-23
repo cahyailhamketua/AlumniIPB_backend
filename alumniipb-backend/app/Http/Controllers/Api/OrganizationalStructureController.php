@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\OrganizationalStructure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 
 class OrganizationalStructureController extends Controller
@@ -37,9 +39,8 @@ class OrganizationalStructureController extends Controller
         $data = $request->only(['name', 'position', 'tenure']);
 
         if ($request->hasFile('image')) {
-            $imageName = time().'.'.$request->image->extension();
-            $request->image->move(public_path('images/organizational_structures'), $imageName);
-            $data['image'] = '/images/organizational_structures/'.$imageName;
+            $path = $request->file('image')->store('organizational_structures', 'public');
+            $data['image'] = 'storage/' . $path;
         }
 
         $structure = OrganizationalStructure::create($data);
@@ -87,13 +88,10 @@ class OrganizationalStructureController extends Controller
         $structure->fill($request->only(['name', 'position', 'tenure']));
 
         if ($request->hasFile('image')) {
-            if ($structure->image && file_exists(public_path($structure->image))) {
-                @unlink(public_path($structure->image));
-            }
+            $this->deleteOrganizationalStructureImage($structure->image);
 
-            $imageName = time().'.'.$request->image->extension();
-            $request->image->move(public_path('images/organizational_structures'), $imageName);
-            $structure->image = '/images/organizational_structures/'.$imageName;
+            $path = $request->file('image')->store('organizational_structures', 'public');
+            $structure->image = 'storage/' . $path;
         }
 
         $structure->save();
@@ -114,13 +112,35 @@ class OrganizationalStructureController extends Controller
             return response()->json(['message' => 'Organizational structure not found'], 404);
         }
 
-        if ($structure->image && file_exists(public_path($structure->image))) {
-            @unlink(public_path($structure->image));
-        }
+        $this->deleteOrganizationalStructureImage($structure->image);
 
         $structure->delete();
 
         return response()->json(['message' => 'Organizational structure deleted successfully'], 200);
+    }
+
+    /**
+     * Hapus file image dari storage (format storage/... atau legacy images/...).
+     */
+    private function deleteOrganizationalStructureImage(?string $image): void
+    {
+        if (!$image) {
+            return;
+        }
+
+        if (Str::startsWith($image, 'storage/')) {
+            $path = Str::after($image, 'storage/');
+            if (Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
+            }
+            return;
+        }
+
+        // Legacy: disimpan di public/images/organizational_structures
+        $path = ltrim($image, '/');
+        if (str_starts_with($path, 'images/organizational_structures/') && file_exists(public_path($path))) {
+            @unlink(public_path($path));
+        }
     }
 }
 
